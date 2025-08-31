@@ -8,6 +8,37 @@
  * ------------------------------------------------------------
  */{
   "sections": {
+    "revissant_carousel": {
+  "type": "animated-carousel",
+  "blocks": {
+    "slide1": {
+      "type": "slide",
+      "settings": {
+        "image": "shopify://shop_images/slide1.jpg",
+        "alt": "Primeiro Slide"
+      }
+    },
+    "slide2": {
+      "type": "slide",
+      "settings": {
+        "image": "shopify://shop_images/slide2.jpg",
+        "alt": "Segundo Slide"
+      }
+    }
+  },
+  "block_order": ["slide1", "slide2"],
+  "settings": {
+    "bg": "#f4e07a",
+    "aspect_ratio": "4 / 5",
+    "autoplay": true,
+    "autoplay_interval": 4,
+    "transition_ms": 650,
+    "loop": true,
+    "show_arrows": true,
+    "show_dots": true
+  }
+},
+
     "hero_jVaWmY": {
       "type": "hero",
       "blocks": {
@@ -281,6 +312,7 @@
   },
   "order": [
     "hero_jVaWmY",
+    "revissant_carousel",
     "product_list_fa6P9H"
   ]
 }
