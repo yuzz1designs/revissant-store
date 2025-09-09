@@ -1,0 +1,36 @@
+{% comment %}REVISSANT: Linha de item — layout tipo Billabong{% endcomment %}
+<li class="cart-item">
+  <div class="cart-item__main">
+    <a class="cart-item__thumb" href="{{ item.url }}">
+      {{ item.image | image_url: width: 240 | image_tag: class: 'thumb-img', alt: item.image.alt }}
+    </a>
+
+    <div class="cart-item__text">
+      <a class="cart-item__title" href="{{ item.url }}">{{ item.product.title }}</a>
+
+      {% unless item.variant.title == 'Default Title' %}
+        <div class="cart-item__variant">{{ item.variant.title }}</div>
+      {% endunless %}
+
+      <div class="cart-item__actions">
+        <form action="/cart/change" method="post" class="qty-form" data-item-key="{{ item.key }}">
+          <input type="hidden" name="id" value="{{ item.key }}">
+          <button type="button" class="qty-btn" data-change="-1" aria-label="Diminuir">−</button>
+          <input type="number" name="quantity" min="0" value="{{ item.quantity }}" class="qty-input" aria-label="Quantidade">
+          <button type="button" class="qty-btn" data-change="1" aria-label="Aumentar">+</button>
+        </form>
+
+        <form action="/cart/change" method="post">
+          <input type="hidden" name="id" value="{{ item.key }}">
+          <input type="hidden" name="quantity" value="0">
+          <button type="submit" class="icon-btn" title="Remover">🗑</button>
+        </form>
+
+        <button class="icon-btn" aria-disabled="true" title="Guardar">♡</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="cart-item__price">{{ item.final_line_price | money }}</div>
+</li>
+

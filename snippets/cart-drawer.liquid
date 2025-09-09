@@ -98,10 +98,8 @@
               {% render 'cart-products' %}
             </scroll-hint>
 
-            <div
-              class="cart-drawer__summary"
-            >
-              {% render 'cart-summary' %}
+            <div class="cart-drawer__summary">
+            {% render 'cart-summary', origin: 'drawer' %}
             </div>
           </div>
         {%- endif -%}

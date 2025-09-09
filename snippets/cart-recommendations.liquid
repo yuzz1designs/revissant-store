@@ -1,0 +1,73 @@
+<section class="cart-recs" aria-label="Recomendado para si">
+  <h3 class="cart-recs__title">{{ title | default: 'Recomendado para si' }}</h3>
+  <div class="recs__grid" id="cart-recs-grid-{{ section.id | default: 'cart' }}"></div>
+</section>
+
+<script>
+(function(){
+  const grid = document.getElementById('cart-recs-grid-{{ section.id | default: "cart" }}');
+  if (!grid) return;
+
+  // --- seeds vindas do Liquid ---
+  const cartIds = [
+    {% for li in cart.items %}{{ li.product.id }}{% unless forloop.last %}, {% endunless %}{% endfor %}
+  ];
+  const seedHandle = `{% if cart.item_count > 0 and cart.items.first.product.collections and cart.items.first.product.collections.size > 0 %}{{ cart.items.first.product.collections.first.handle }}{% endif %}`;
+  const currency = '{{ shop.currency }}';
+  const limit = {{ limit | default: 8 }};
+
+  function render(products){
+    grid.innerHTML = '';
+    products.forEach(p=>{
+      const a = document.createElement('a');
+      a.className = 'card';
+      a.href = p.url;
+      a.innerHTML = `
+        <img class="card__img" src="${p.featured_image}" alt="${p.title}">
+        <div class="card__body">
+          <div class="card__title">${p.title}</div>
+          <div class="card__price">${(p.price/100).toLocaleString(undefined,{style:'currency',currency:currency})}</div>
+        </div>`;
+      grid.appendChild(a);
+    });
+  }
+
+  function filterOutCart(products){
+    return (products||[]).filter(p => !cartIds.includes(p.id));
+  }
+
+  // 1) Tentar recomendações nativas
+  {% if cart.item_count > 0 %}
+  fetch(`/recommendations/products.json?product_id={{ cart.items.first.product.id }}&limit=${limit}`)
+    .then(r=>r.json()).then(data=>{
+      let items = filterOutCart(data.products || []);
+      if (items.length){ render(items); return; }
+
+      // 2) Mesma coleção do primeiro produto
+      if (seedHandle){
+        fetch(`/collections/${seedHandle}/products.json?limit=${limit+cartIds.length}`)
+          .then(r=>r.json()).then(col=>{
+            items = filterOutCart(col.products || []).slice(0, limit);
+            if (items.length){ render(items); return; }
+
+            // 3) Fallback: coleção all
+            return fetch(`/collections/all/products.json?limit=${limit+cartIds.length}`)
+              .then(r=>r.json()).then(all=>{
+                items = filterOutCart(all.products || []).slice(0, limit);
+                render(items);
+              });
+          });
+      } else {
+        // Sem coleção → fallback direto para all
+        fetch(`/collections/all/products.json?limit=${limit+cartIds.length}`)
+          .then(r=>r.json()).then(all=>{
+            const items = filterOutCart(all.products || []).slice(0, limit);
+            render(items);
+          });
+      }
+    })
+    .catch(()=>{/* silencioso */});
+  {% endif %}
+})();
+</script>
+

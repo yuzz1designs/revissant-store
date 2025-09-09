@@ -83,26 +83,35 @@
   </div>
 </div>
 
-<div class="cart__ctas">
-  <button
-    type="submit"
-    id="checkout"
-    class="cart__checkout-button button"
-    name="checkout"
-    {% if cart == empty %}
-      disabled
-    {% endif %}
-    form="cart-form"
-  >
-    {{ 'content.checkout' | t }}
-  </button>
+{% if origin == 'drawer' %}
+  <!-- Drawer → ir primeiro ao pré-checkout -->
+  <div class="cart__ctas">
+    <a href="{{ routes.cart_url }}" class="cart__checkout-button button" style="width:100%">
+      Ver carrinho
+    </a>
+  </div>
+{% else %}
+  <!-- Página /cart → checkout normal + acelerados -->
+  <div class="cart__ctas">
+    <button
+      type="submit"
+      id="checkout"
+      class="cart__checkout-button button"
+      name="checkout"
+      {% if cart == empty %}disabled{% endif %}
+      form="cart-form"
+    >
+      {{ 'content.checkout' | t }}
+    </button>
 
-  {% if additional_checkout_buttons and settings.show_accelerated_checkout_buttons %}
-    <div class="additional-checkout-buttons additional-checkout-buttons--vertical">
-      {{ content_for_additional_checkout_buttons }}
-    </div>
-  {% endif %}
-</div>
+    {% if additional_checkout_buttons and settings.show_accelerated_checkout_buttons %}
+      <div class="additional-checkout-buttons additional-checkout-buttons--vertical">
+        {{ content_for_additional_checkout_buttons }}
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
+
 
 {% stylesheet %}
   .cart-actions {
