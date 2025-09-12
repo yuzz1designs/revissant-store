@@ -16,21 +16,55 @@
   %}
 
   <div
-    class="
-      spacing-style
-      layout-panel-flex
-      layout-panel-flex--{{ section.settings.content_direction }}
-      section-content-wrapper
-      {% if section.settings.vertical_on_mobile %} mobile-column{% endif %}
-    "
-    style="
-      {% render 'layout-panel-style', settings: section.settings %}
-      {%  render 'spacing-style', settings: section.settings %}
-    "
-  >
-    {% content_for 'blocks' %}
-  </div>
+  class="
+    spacing-style
+    layout-panel-flex
+    layout-panel-flex--{{ section.settings.content_direction }}
+    section-content-wrapper
+    {% if section.settings.vertical_on_mobile %} mobile-column{% endif %}
+  "
+  style="
+    {% render 'layout-panel-style', settings: section.settings %}
+    {% render 'spacing-style', settings: section.settings %}
+  "
+>
+  {% content_for 'blocks' %}
 </div>
+
+
+</div>
+
+{% stylesheet %}
+/* …(CSS que já existia no ficheiro)… */
+
+/* Split esquerda | direita e newsletter compacta */
+#shopify-section-{{ section.id }} .layout-panel-flex--row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 420px;
+  gap:32px; align-items:start;
+}
+#shopify-section-{{ section.id }} .layout-panel-flex--row > *{ grid-column:1; }
+#shopify-section-{{ section.id }} .layout-panel-flex--row > [data-block-type="email-signup"],
+#shopify-section-{{ section.id }} .layout-panel-flex--row > .email-signup,
+#shopify-section-{{ section.id }} .layout-panel-flex--row > [id*="EmailSignup"],
+#shopify-section-{{ section.id }} .layout-panel-flex--row > :last-child{
+  grid-column:2; justify-self:end; max-width:460px;
+}
+#shopify-section-{{ section.id }} .layout-panel-flex--row :is(h2,h3,.title){font-size:1.05rem;line-height:1.3}
+#shopify-section-{{ section.id }} .layout-panel-flex--row p{font-size:.9rem;color:#666}
+#shopify-section-{{ section.id }} .layout-panel-flex--row input[type="email"]{
+  height:44px;padding:0 12px;border:1px solid #ddd;border-radius:12px
+}
+#shopify-section-{{ section.id }} .layout-panel-flex--row button[type="submit"]{
+  height:44px;padding:0 14px;border-radius:12px
+}
+/* espaço antes da barra legal */
+#shopify-section-{{ section.id }} .section-content-wrapper + *{ margin-top:28px; }
+{% endstylesheet %}
+
+
+
+
 
 {% schema %}
 {
@@ -372,3 +406,4 @@
   ]
 }
 {% endschema %}
+

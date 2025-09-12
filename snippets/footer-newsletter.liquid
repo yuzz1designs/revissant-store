@@ -1,0 +1,26 @@
+{% comment %}Newsletter compacta para o footer{% endcomment %}
+<div class="footer-newsletter">
+  <h3 class="footer-newsletter__title">
+    {{ newsletter_heading | default: 'Join our email list' }}
+  </h3>
+  {% if newsletter_subtext %}
+    <p class="footer-newsletter__copy">{{ newsletter_subtext }}</p>
+  {% endif %}
+
+  {% form 'customer', id: 'FooterNewsletter' %}
+    <input type="hidden" name="contact[tags]" value="newsletter">
+    <div class="footer-newsletter__field">
+      <input id="FooterEmail" type="email" name="contact[email]" required
+             placeholder="{{ 'newsletter.label' | t | default: 'Endereço de e-mail' }}">
+      <button class="btn btn--primary" type="submit">
+        {{ 'newsletter.button_label' | t | default: 'Join' }}
+      </button>
+    </div>
+    {% if form.posted_successfully? %}
+      <p class="footer-newsletter__success">
+        {{ 'newsletter.success' | t | default: 'Obrigado por subscreveres!' }}
+      </p>
+    {% endif %}
+    {{ form.errors | default_errors }}
+  {% endform %}
+</div>
