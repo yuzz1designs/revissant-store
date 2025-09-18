@@ -1,0 +1,321 @@
+{% comment %}
+  PDP em 2 colunas: esquerda longa (galeria + infos), direita sticky (preço + opções + CTA).
+  Metafields opcionais:
+    - product.metafields.custom.details (rich text)
+    - product.metafields.custom.dimensions (rich text)
+{% endcomment %}
+
+<section id="pdp-two-col" class="pdp-two-col color-{{ section.settings.color_scheme }}">
+  <div class="pdp-two-col__inner">
+    <!-- COLUNA ESQUERDA -->
+    <div class="pdp-left" id="pdp-left">
+      <!-- GALERIA -->
+        <div class="pdp-gallery">
+            <!-- STAGE (imagem grande) -->
+            <div class="pdp-stage" id="pdp-stage">
+                {% assign first = product.media.first %}
+                <figure class="pdp-stage__item is-active" data-media-id="{{ first.id }}">
+                    {% if first.media_type == 'image' %}
+                        {{ first | image_url: width: 1600 | image_tag: alt: first.alt | default: product.title }}
+                    {% else %}
+                        {{ first | media_tag: image_size: '1600x' }}
+                    {% endif %}
+                </figure>
+            </div>
+
+            <!-- THUMBS (miniaturas em fila) -->
+            <div class="pdp-thumbs-row" id="pdp-thumbs">
+                {% for media in product.media %}
+                    <button type="button"
+                            class="pdp-thumb{% if forloop.first %} is-active{% endif %}"
+                            data-media-id="{{ media.id }}"
+                            aria-label="Ver imagem {{ forloop.index }}">
+                        {{ media | image_url: width: 150 | image_tag: loading: 'lazy', alt: media.alt | default: product.title }}
+                    </button>
+                {% endfor %}
+            </div>
+
+            <!-- TEMPLATES com HTML das medias grandes (para troca por JS) -->
+            {% for media in product.media %}
+                <template id="tmpl-media-{{ media.id }}">
+                    {% if media.media_type == 'image' %}
+                        {{ media | image_url: width: 1600 | image_tag: alt: media.alt | default: product.title }}
+                    {% else %}
+                        {{ media | media_tag: image_size: '1600x' }}
+                    {% endif %}
+                </template>
+            {% endfor %}
+        </div>
+        {% if product.description != blank %}
+            <div class="pdp-description rte">{{ product.description }}</div>
+        {% endif %}
+
+        <details class="pdp-details">
+            <summary>Detalhes do produto</summary>
+            <div class="pdp-acc-body rte">
+                {% if product.metafields.custom.details != blank %}
+                {{ product.metafields.custom.details | metafield_tag }}
+                {% else %}
+                {{ product.description }}
+                {% endif %}
+            </div>
+        </details>
+
+      <!-- ACORDEÕES -->
+      <div class="pdp-accordions">
+        <details open>
+          <summary>Detalhes do produto</summary>
+          <div class="pdp-acc-body rte">
+            {% if product.metafields.custom.details != blank %}
+              {{ product.metafields.custom.details | metafield_tag }}
+            {% else %}
+              {{ product.description }}
+            {% endif %}
+          </div>
+        </details>
+
+        <details>
+          <summary>Medidas</summary>
+          <div class="pdp-acc-body rte">
+            {% if product.metafields.custom.dimensions != blank %}
+              {{ product.metafields.custom.dimensions | metafield_tag }}
+            {% else %}
+              <p>Ver imagens para dimensões.</p>
+            {% endif %}
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <!-- COLUNA DIREITA (STICKY) -->
+    <aside class="pdp-right" id="pdp-right">
+      <div class="pdp-card">
+        <h1 class="pdp-title">{{ product.title }}</h1>
+
+        {% assign sel = product.selected_or_first_available_variant %}
+        <div class="pdp-price" id="pdp-price">
+          <span class="price">{{ sel.price | money }}</span>
+          {% if sel.compare_at_price > sel.price %}
+            <span class="compare">{{ sel.compare_at_price | money }}</span>
+          {% endif %}
+          {% if product.price_varies %}
+            <span class="from">desde {{ product.price_min | money }}</span>
+          {% endif %}
+        </div>
+
+        <product-form>
+          {% form 'product', product, id: 'product-form', novalidate: 'novalidate' %}
+            <input type="hidden" name="id" value="{{ sel.id }}" id="variant-id">
+
+            {% for opt in product.options_with_values %}
+                <div class="pdp-option">
+                    <label class="opt-label">{{ opt.name }}</label>
+                    <div class="opt-values">
+                    {% if opt.values.size > 6 %}
+                        <select name="options[{{ opt.name }}]" data-option-index="{{ forloop.index0 }}">
+                        {% for val in opt.values %}
+                            <option value="{{ val | escape }}" {% if opt.selected_value == val %}selected{% endif %}>{{ val }}</option>
+                        {% endfor %}
+                        </select>
+                    {% else %}
+                        {% for val in opt.values %}
+                        <label class="chip">
+                            <input
+                            type="radio"
+                            name="options[{{ opt.name }}]"
+                            value="{{ val | escape }}"
+                            {% if opt.selected_value == val %}checked{% endif %}
+                            data-option-index="{{ forloop.parentloop.index0 }}"
+                            >
+                            <span>{{ val }}</span>
+                        </label>
+                        {% endfor %}
+                    {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+
+            <div class="pdp-qty">
+              <button class="qty-btn" type="button" data-qty-dec>-</button>
+              <input class="qty-input" type="number" name="quantity" value="1" min="1" inputmode="numeric" pattern="[0-9]*">
+              <button class="qty-btn" type="button" data-qty-inc>+</button>
+            </div>
+
+            <button type="submit" class="button add-btn" {% unless sel.available %}disabled{% endunless %}>
+              Adicionar ao cesto
+            </button>
+
+            {% if additional_checkout_buttons %}
+              <div class="additional-checkout-buttons additional-checkout-buttons--vertical">
+                {{ content_for_additional_checkout_buttons }}
+              </div>
+            {% endif %}
+          {% endform %}
+        </product-form>
+
+        {% if sel.available %}
+          <p class="avail ok">Disponível</p>
+        {% else %}
+          <p class="avail no">Sem stock</p>
+        {% endif %}
+      </div>
+    </aside>
+  </div>
+</section>
+
+{% stylesheet %}
+#pdp-two-col{--gap:32px; --sticky-top: 72px;}
+.pdp-two-col__inner{display:grid;gap:var(--gap)}
+@media (min-width: 990px){
+  .pdp-two-col__inner{grid-template-columns:minmax(0,1fr) 420px}
+}
+.pdp-left{min-width:0}
+.pdp-right{position:sticky; top:var(--sticky-top); align-self:start}
+
+/* ====== GALERIA (stage + thumbs em fila) ====== */
+.pdp-gallery{display:grid;gap:12px;margin-bottom:20px}
+.pdp-stage img, .pdp-stage video{width:100%;height:auto;border-radius:12px}
+.pdp-thumbs-row{display:flex;gap:8px;overflow:auto;padding:4px 0}
+.pdp-thumb{width:84px;height:84px;border:1px solid #eee;border-radius:10px;overflow:hidden;background:transparent;padding:0;cursor:pointer;flex:0 0 auto}
+.pdp-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.pdp-thumb.is-active{outline:2px solid #111}
+
+/* ====== DESCRIÇÃO + GAVETA ====== */
+.pdp-description{margin:12px 0 4px}
+.pdp-details{border-top:1px solid #eee;border-bottom:1px solid #eee;margin:8px 0}
+.pdp-details summary{cursor:pointer;padding:14px 0;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.pdp-acc-body{padding:0 0 14px}
+
+/* Acordeões */
+.pdp-accordions details{border-top:1px solid #eee}
+.pdp-accordions details:last-child{border-bottom:1px solid #eee}
+.pdp-accordions summary{cursor:pointer;padding:16px 0;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.pdp-acc-body{padding:0 0 16px}
+.rte ul{padding-left:1.2rem}
+
+/* Card direita */
+.pdp-card{background:var(--color-background);border:1px solid #eee;border-radius:16px;padding:16px}
+.pdp-title{font-size:1.4rem;margin:0 0 .5rem}
+.pdp-price{display:flex;gap:10px;align-items:baseline;margin-bottom:.75rem}
+.pdp-price .price{font-size:1.6rem;font-weight:800}
+.pdp-price .compare{text-decoration:line-through;color:#999}
+.pdp-option{margin:10px 0}
+.opt-label{display:block;font-weight:600;margin-bottom:6px}
+.opt-values{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #ddd;border-radius:999px;padding:6px 10px;cursor:pointer}
+.chip input{display:none}
+.chip input:checked + span, .chip:has(input:checked){background:#111;color:#fff;border-color:#111}
+.pdp-qty{display:inline-flex;align-items:center;border:1px solid #ddd;border-radius:999px;overflow:hidden;margin:.75rem 0}
+.qty-btn{width:36px;height:36px;line-height:36px;text-align:center}
+.qty-input{width:54px;height:36px;border:0;text-align:center}
+.add-btn{width:100%;height:48px;margin:.5rem 0 0}
+.avail{font-size:.9rem;margin:.25rem 0 0}
+.avail.ok{color:#2e7d32}
+.avail.no{color:#c62828}
+
+/* Responsivo */
+@media (max-width: 989px){
+  .pdp-gallery{grid-template-columns:1fr}
+  .pdp-thumbs{order:2;flex-direction:row;max-height:none;overflow:auto}
+  .pdp-stage{order:1}
+  .pdp-right{position:static}
+}
+{% endstylesheet %}
+
+<script>
+(function(){
+  const form = document.getElementById('product-form');
+  if(!form) return;
+
+  const productData = {{ product | json }};
+  const variantIdInput = document.getElementById('variant-id');
+  const priceEl = document.getElementById('pdp-price')?.querySelector('.price');
+  const addBtn = form.querySelector('.add-btn');
+
+  // Qty
+  form.querySelector('[data-qty-inc]')?.addEventListener('click',()=> {
+    const i = form.querySelector('.qty-input'); i.value = Math.max(1, (+i.value||1)+1);
+  });
+  form.querySelector('[data-qty-dec]')?.addEventListener('click',()=> {
+    const i = form.querySelector('.qty-input'); i.value = Math.max(1, (+i.value||1)-1);
+  });
+
+  // Variants
+  function currentOptions(){
+    const o = {};
+    form.querySelectorAll('[name^="options["]').forEach(el=>{
+      const name = el.name.replace(/^options\\[|\\]$/g,'');
+      o[name] = el.type==='radio'
+        ? form.querySelector(`input[name="${el.name}"]:checked`)?.value
+        : el.value;
+    });
+    return Object.values(o);
+  }
+
+  function findVariant(){
+    const opts = currentOptions();
+    return productData.variants.find(v => v.options.every((val, idx) => val == opts[idx]));
+  }
+
+  function formatMoney(cents){
+    try {
+      return new Intl.NumberFormat('{{ localization.country.iso_code | default: "PT" }}-{{ localization.language.iso_code | default: "pt" }}', { style:'currency', currency: '{{ shop.currency }}' }).format(cents/100);
+    } catch(e){
+      return (cents/100).toFixed(2);
+    }
+  }
+
+  form.addEventListener('change', e=>{
+    if(!e.target.name.startsWith('options[')) return;
+    const v = findVariant();
+    if(!v) return;
+    variantIdInput.value = v.id;
+    if(priceEl){ priceEl.textContent = formatMoney(v.price); }
+    if(addBtn){
+      addBtn.disabled = !v.available;
+      addBtn.textContent = v.available ? 'Adicionar ao cesto' : 'Esgotado';
+    }
+    const url = new URL(location.href);
+    url.searchParams.set('variant', v.id);
+    window.history.replaceState({}, '', url.toString());
+  });
+
+  // --------- Troca de imagem por hover/click nas thumbs ---------
+  const stage = document.getElementById('pdp-stage');
+  const thumbsWrap = document.getElementById('pdp-thumbs');
+  if (stage && thumbsWrap) {
+    const thumbs = thumbsWrap.querySelectorAll('.pdp-thumb');
+    const swap = (btn) => {
+        thumbs.forEach(b => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+
+        const id = btn.getAttribute('data-media-id');
+        const tpl = document.getElementById('tmpl-media-' + id);
+        if (tpl) stage.innerHTML = tpl.innerHTML;
+
+        // --- auto-scroll da faixa de thumbs em mobile ---
+        if (window.matchMedia('(max-width: 989px)').matches) {
+        const target =
+            btn.offsetLeft - (thumbsWrap.clientWidth / 2 - btn.offsetWidth / 2);
+        thumbsWrap.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+        }
+    };
+    thumbs.forEach(btn => {
+      btn.addEventListener('click', () => swap(btn));
+      btn.addEventListener('mouseenter', () => swap(btn));
+    });
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "PDP 2-col sticky",
+  "tag": "section",
+  "class": "pdp-two-col-section",
+  "templates": ["product"],
+  "settings": [
+    { "type": "color_scheme", "id": "color_scheme", "label": "Esquema de cores", "default": "scheme-1" }
+  ]
+}
+{% endschema %}
