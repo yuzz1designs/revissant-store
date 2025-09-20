@@ -1,0 +1,62 @@
+{% comment %} Revissant • Product Card (estilo clean, tipo Nike) {% endcomment %}
+{%- assign img = product.featured_image -%}
+
+<article class="rv-card">
+  <a class="rv-card__media" href="{{ product.url | within: collection }}">
+    {% if img %}
+      <img
+        src="{{ img | image_url: width: 900 }}"
+        alt="{{ img.alt | escape }}"
+        loading="lazy"
+        width="{{ img.width }}" height="{{ img.height }}">
+    {% else %}
+      {{ 'image' | placeholder_svg_tag }}
+    {% endif %}
+
+    {%- if product.compare_at_price_max > product.price -%}
+      <span class="rv-badge rv-badge--sale">Sale</span>
+    {%- endif -%}
+    {%- if product.tags contains 'bestseller' -%}
+      <span class="rv-badge rv-badge--best">Bestseller</span>
+    {%- endif -%}
+    {%- if product.tags contains 'new' or product.tags contains 'novo' -%}
+      <span class="rv-badge">New</span>
+    {%- endif -%}
+  </a>
+
+  {%- comment -%} Swatches (se existir opção Color/Cor) {%- endcomment -%}
+  {% assign color_opt = nil %}
+  {% for opt in product.options_with_values %}
+    {% assign opt_name = opt.name | downcase %}
+    {% if opt_name contains 'color' or opt_name contains 'cor' %}
+      {% assign color_opt = opt %}
+    {% endif %}
+  {% endfor %}
+
+{% if color_opt %}
+  <div class="rv-swatches">
+    {% assign seen = '' %}
+    {% for v in color_opt.values %}
+      {% assign marker = v | append: '|' %}
+      {% unless seen contains marker %}
+        <span class="rv-swatch" title="{{ v | escape }}"></span>
+        {% assign seen = seen | append: marker %}
+      {% endunless %}
+    {% endfor %}
+  </div>
+{% endif %}
+
+  <div class="rv-card__body">
+    {% if product.vendor != blank %}<div class="rv-card__brand">{{ product.vendor }}</div>{% endif %}
+    <h3 class="rv-card__title"><a href="{{ product.url | within: collection }}">{{ product.title }}</a></h3>
+
+    <div class="rv-card__price">
+      {% if product.compare_at_price_max > product.price %}
+        <span class="rv-price">{{ product.price | money }}</span>
+        <s class="rv-compare">{{ product.compare_at_price_max | money }}</s>
+      {% else %}
+        <span class="rv-price">{{ product.price | money }}</span>
+      {% endif %}
+    </div>
+  </div>
+</article>

@@ -1,0 +1,111 @@
+/* Revissant • Catalog layout (sidebar empurra a grid, estilo Nike) */
+.rv-collection{
+  --gap:32px;
+  --content-max:1280px;
+  --sidebar-w:320px;                /* largura sidebar */
+  --sticky-top:84px;                /* ajuste conforme altura do header */
+  --card-scale:1;                   /* encolhe ligeiro quando aberto */
+  max-width:var(--content-max);
+  margin-inline:auto;
+  padding:24px 32px 64px;
+}
+
+/* Cabeçalho */
+.rv-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 18px;}
+.rv-title{margin:0;font-size:clamp(28px,3vw,36px);line-height:1.15;font-weight:700;}
+.rv-toggle{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid currentColor;border-radius:8px;background:transparent;cursor:pointer}
+.rv-toggle .rv-icon{width:18px;height:18px}
+
+/* Layout: grid de 2 colunas (sidebar | content) com var animada */
+.rv-layout{
+  --sb:0px; /* fechado por defeito */
+  display:grid;
+  grid-template-columns: var(--sb) 1fr;
+  gap:var(--gap);
+  transition:grid-template-columns .28s ease, gap .28s ease;
+}
+
+.rv-layout[data-open="true"]{ --sb: var(--sidebar-w); }
+.rv-layout[data-open="true"] ~ .rv-pagination{ margin-left: var(--sidebar-w); }
+
+/* Sidebar */
+.rv-sidebar{
+  width:var(--sidebar-w);
+  opacity:0;
+  transform:translateX(-12px);
+  transition:opacity .28s ease, transform .28s ease;
+  pointer-events:none;
+}
+.rv-layout[data-open="true"] .rv-sidebar{
+  opacity:1; transform:translateX(0); pointer-events:auto;
+}
+
+.rv-sidebar.is-sticky{
+  position:sticky;
+  top:var(--sticky-top);
+  max-height:calc(100vh - var(--sticky-top) - 24px);
+  overflow:auto;
+  padding-right:6px; /* cria espaço para a scrollbar */
+}
+
+/* Navegação de categorias (opcional) */
+.rv-cats{display:grid;gap:10px;margin:6px 0 18px;}
+.rv-cat{display:block;padding:6px 0;text-decoration:none;color:inherit;opacity:.9}
+.rv-cat.is-active{font-weight:600;opacity:1}
+
+/* Filtros */
+.rv-filters{display:grid;gap:14px}
+.rv-filter{border-bottom:1px solid rgba(0,0,0,.08);padding-bottom:8px}
+.rv-filter > summary{cursor:pointer;font-weight:600;list-style:none}
+.rv-filter[open] > summary{opacity:.9}
+.rv-filter__list{display:grid;gap:8px;margin:10px 0}
+.rv-check{display:flex;align-items:center;gap:8px;font-size:14px}
+.rv-check.is-disabled{opacity:.45}
+.rv-check em{margin-left:auto;opacity:.55;font-style:normal}
+.rv-price{display:flex;gap:8px}
+.rv-price input{width:100%;padding:8px 10px;border:1px solid rgba(0,0,0,.15);border-radius:8px}
+.rv-apply{margin-top:6px;padding:10px 14px;border:1px solid currentColor;border-radius:8px;background:transparent;cursor:pointer}
+
+/* Content */
+.rv-content{min-width:0}
+
+/* Grid de produtos — 3 colunas desktop, 2 tablet, 1 mobile */
+.rv-grid{
+  display:grid;
+  width:100%;
+  gap:28px;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  transition:gap .2s ease;
+}
+
+@media(max-width: 989.98px){
+  .rv-grid{grid-template-columns:repeat(2, minmax(0,1fr));}
+}
+@media(max-width: 749.98px){
+  .rv-layout{grid-template-columns:1fr;} /* sidebar some em mobile: opta por drawer futuro */
+  .rv-grid{grid-template-columns:1fr;}
+}
+
+/* Quando a sidebar está aberta, encolhe ligeiro os cards (efeito Nike) */
+.rv-layout[data-open="true"] ~ .rv-content,
+.rv-layout[data-open="true"] .rv-content{ --card-scale:.965; }
+.rv-layout[data-open="true"] .rv-grid{ gap:24px; }
+
+/* Product Card */
+.rv-card{display:grid;gap:10px;transform:scale(var(--card-scale));transform-origin:top left;transition:transform .18s ease}
+.rv-card__media{display:block;position:relative;overflow:hidden;border-radius:8px;background:#f6f6f6;aspect-ratio:3/4;max-height:500px}
+.rv-card__media img{width:100%;height:100%;object-fit:cover;display:block}
+.rv-badge{position:absolute;left:10px;top:10px;background:#111;color:#fff;border-radius:999px;padding:4px 8px;font-size:12px;line-height:1}
+.rv-badge--sale{background:#d63d2e}
+.rv-badge--best{background:#0a7d2a}
+.rv-swatches{display:flex;gap:10px;margin-top:6px}
+.rv-swatch{width:12px;height:12px;border-radius:50%;background:#333;border:1px solid rgba(0,0,0,.15)}
+.rv-card__body{display:grid;gap:4px}
+.rv-card__brand{font-size:13px;color:#e65c00;font-weight:700}
+.rv-card__title{margin:0;font-size:15px;line-height:1.35}
+.rv-card__title a{color:inherit;text-decoration:none}
+.rv-card__price{display:flex;align-items:baseline;gap:8px;font-size:15px}
+.rv-compare{opacity:.55}
+
+/* Paginação */
+.rv-pagination{display:flex;justify-content:center;align-items:center;gap:16px;margin-top:32px}

@@ -1,0 +1,6 @@
+{
+  "sections": {
+    "main": { "type": "collection-revissant", "settings": {} }
+  },
+  "order": ["main"]
+}

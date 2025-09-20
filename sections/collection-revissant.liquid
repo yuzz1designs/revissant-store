@@ -1,0 +1,120 @@
+{% comment %} Revissant • Catálogo (sidebar que empurra a grid, estilo Nike) {% endcomment %}
+{% assign per_page = section.settings.per_page | default: 27 %}
+
+<section class="rv-collection" data-rv-collection>
+  <!-- Cabeçalho: título à esquerda + botão à direita -->
+  <div class="rv-head">
+    {% if section.settings.show_title %}
+      <h1 class="rv-title">
+        {{ collection.title | default: 'Catalog' }}
+      </h1>
+    {% endif %}
+
+    <button
+      type="button"
+      class="rv-toggle"
+      data-rv-toggle
+      aria-controls="rv-sidebar"
+      aria-expanded="false">
+      <span data-rv-toggle-label>Show Filters</span>
+      <svg aria-hidden="true" viewBox="0 0 24 24" class="rv-icon">
+        <path d="M3 6h18M6 12h12M10 18h4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Layout com sidebar + content; controlado por data-open -->
+  <div class="rv-layout" data-rv-layout data-open="false">
+    <aside
+      id="rv-sidebar"
+      class="rv-sidebar{% if section.settings.sticky_sidebar %} is-sticky{% endif %}"
+      data-rv-sidebar
+      aria-hidden="true">
+      {% assign nav = linklists[section.settings.sidebar_menu] %}
+      {% if nav and nav.links.size > 0 %}
+        <nav class="rv-cats">
+          {% for l in nav.links %}
+            <a class="rv-cat{% if l.active %} is-active{% endif %}" href="{{ l.url }}">{{ l.title }}</a>
+          {% endfor %}
+        </nav>
+      {% endif %}
+
+      {% if collection.filters and collection.filters.size > 0 %}
+        <form method="get" class="rv-filters" id="rv-filters-form">
+          {% for filter in collection.filters %}
+            <details class="rv-filter"{% if filter.active_values.size > 0 %} open{% endif %}>
+              <summary>{{ filter.label }}</summary>
+
+              {% case filter.type %}
+                {% when 'list' %}
+                  <div class="rv-filter__list">
+                    {% for v in filter.values %}
+                      <label class="rv-check {% if v.count == 0 and v.active == false %}is-disabled{% endif %}">
+                        <input type="checkbox" name="{{ filter.param_name }}" value="{{ v.value }}"
+                          {% if v.active %}checked{% endif %} {% if v.count == 0 and v.active == false %}disabled{% endif %}>
+                        <span>{{ v.label }}</span><em>{{ v.count }}</em>
+                      </label>
+                    {% endfor %}
+                  </div>
+
+                {% when 'price_range' %}
+                  <div class="rv-price">
+                    <input type="number" name="{{ filter.min_value.param_name }}" value="{{ filter.min_value.value | default: '' }}" placeholder="Min">
+                    <input type="number" name="{{ filter.max_value.param_name }}" value="{{ filter.max_value.value | default: '' }}" placeholder="Max">
+                  </div>
+              {% endcase %}
+            </details>
+          {% endfor %}
+
+          {%- comment -%} Preservar query params úteis (ex: q, utm, etc.) {%- endcomment -%}
+          {% for p in request.query_parameters %}
+            {% assign k = p[0] %}{% assign v = p[1] %}
+            {% unless k contains 'filter.' or k == 'sort_by' or k == 'page' %}
+              <input type="hidden" name="{{ k }}" value="{{ v }}">
+            {% endunless %}
+          {% endfor %}
+
+          <button type="submit" class="rv-apply">Apply</button>
+        </form>
+      {% endif %}
+    </aside>
+
+    <div class="rv-content">
+      {% paginate collection.products by per_page %}
+        <div class="rv-grid" data-rv-grid>
+          {% if collection.products_count == 0 %}
+            <p>No products in this collection.</p>
+          {% else %}
+            {% for product in collection.products %}
+              {% render 'product-card-revissant', product: product, collection: collection %}
+            {% endfor %}
+          {% endif %}
+        </div>
+
+        {% if paginate.pages > 1 %}
+          <nav class="rv-pagination" aria-label="Pagination">
+            {% if paginate.previous %}<a href="{{ paginate.previous.url }}">&larr; Previous</a>{% endif %}
+            <span>Page {{ paginate.current_page }} / {{ paginate.pages }}</span>
+            {% if paginate.next %}<a href="{{ paginate.next.url }}">Next &rarr;</a>{% endif %}
+          </nav>
+        {% endif %}
+      {% endpaginate %}
+    </div>
+  </div>
+</section>
+
+{{ 'collection-revissant.css' | asset_url | stylesheet_tag }}
+<script defer src="{{ 'collection-revissant.js' | asset_url }}"></script>
+
+{% schema %}
+{
+  "name": "Revissant • Catálogo",
+  "settings": [
+    { "type": "checkbox", "id": "show_title", "label": "Mostrar título", "default": true },
+    { "type": "range", "id": "per_page", "label": "Produtos por página", "min": 9, "max": 48, "step": 3, "default": 27 },
+    { "type": "text", "id": "sidebar_menu", "label": "Handle do menu (categorias)", "default": "catalog-sidebar" },
+    { "type": "checkbox", "id": "sticky_sidebar", "label": "Sidebar sticky", "default": true }
+  ],
+  "presets": [{ "name": "Revissant • Catálogo", "category": "Collections" }]
+}
+{% endschema %}
