@@ -4278,3 +4278,33 @@ text-component {
     font-size: max(1rem, 100%);
   }
 }
+
+/* Força todo o texto e links do header a branco */
+.header,
+.header * {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Links do menu principal */
+.header__menu-item,
+.list-menu__item,
+.header__heading-link,
+.header__column a {
+  color: #ffffff !important;
+}
+
+/* Ícones de conta/carrinho/pesquisa */
+.header__icon,
+.header__icon svg {
+  fill: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+/* Seletores de moeda/idioma */
+.localization-form__select,
+.localization-form__select * {
+  color: #ffffff !important;
+}
+

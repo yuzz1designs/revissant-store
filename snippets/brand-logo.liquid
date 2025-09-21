@@ -1,0 +1,21 @@
+{%- comment -%} Snippet: brand-logo.liquid {%- endcomment -%}
+{%- assign src = src | default: 'wordmark.png' -%}
+{%- assign variant = variant | default: 'hero' -%}
+
+<div class="brand-logo brand-logo--{{ variant }}"
+     data-brand-logo data-variant="{{ variant }}">
+  {%- if variant == 'hero' -%}
+    {#-- HERO: sem link, com cópia desfocada p/ glow --#}
+    <div class="brand-logo__wrap" data-logo-hero>
+      <img src="{{ src | asset_url }}" alt="{{ shop.name }}"
+           class="brand-logo__img brand-logo__img--blur" aria-hidden="true">
+      <img src="{{ src | asset_url }}" alt="{{ shop.name }}"
+           class="brand-logo__img">
+    </div>
+  {%- else -%}
+    {#-- HEADER (clicável, botão p/ topo) --#}
+    <a href="{{ routes.root_url }}" class="brand-logo__link" data-logo-header aria-label="{{ shop.name }}">
+      <img src="{{ src | asset_url }}" alt="{{ shop.name }}" class="brand-logo__img">
+    </a>
+  {%- endif -%}
+</div>

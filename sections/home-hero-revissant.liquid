@@ -1,0 +1,129 @@
+{% comment %} Hero – Logo estático + EXPLORE (scroll suave) {% endcomment %}
+<section class="rev-hero" aria-label="Hero">
+  <div class="rev-hero__center">
+    <div class="rev-hero__brand">
+      <img src="{{ 'wordmark.png' | asset_url }}" alt="{{ shop.name }}" class="rev-hero__logo">
+    </div>
+
+    <a id="rev-explore-{{ section.id }}" class="rev-btn rev-btn--outline rev-hero__cta" href="#">
+      EXPLORE
+    </a>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero Logo",
+  "class": "rev-section-hero",
+  "settings": [],
+  "presets": [{ "name": "Hero Logo" }]
+}
+{% endschema %}
+
+{% stylesheet %}
+/* ---- Vars ---- */
+:root{
+  --hero-logo-max: 800px;   /* tamanho máximo do logo */
+  --rev-header-h: 72px;     /* altura do header no desktop (ajusta se precisares) */
+}
+@media (max-width: 749px){
+  :root{ --rev-header-h: 56px; }
+}
+
+/* ---- Fundo/gradiente suave ---- */
+.rev-hero{
+  position:relative; min-height:100svh; color:#fff; overflow:hidden; z-index:1;
+  background:
+    radial-gradient(60% 50% at 50% 52%,
+      rgba(255,255,255,.06) 0%,
+      rgba(255,255,255,.04) 25%,
+      rgba(255,255,255,.015) 50%,
+      rgba(255,255,255,0) 62%),
+    radial-gradient(120% 100% at 0% 0%, rgba(0,0,0,.70) 0%, rgba(0,0,0,.12) 55%, rgba(0,0,0,0) 65%),
+    radial-gradient(120% 100% at 100% 0%, rgba(0,0,0,.70) 0%, rgba(0,0,0,.12) 55%, rgba(0,0,0,0) 65%),
+    linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.34)),
+    radial-gradient(100% 100% at 50% 50%,
+      rgba(38,78,152,.56) 0%,
+      rgba(38,78,152,.60) 46%,
+      rgba(12,24,46,.86) 100%);
+}
+
+/* ---- Centro (botão logo por baixo do logo) ---- */
+.rev-hero__center{
+  min-height: calc(100svh - var(--rev-header-h));
+  display: grid;
+  grid-template-rows: 1fr auto auto 1fr; /* topo / logo / botão / resto */
+  place-items: center;
+  text-align: center;
+  padding: 2rem;
+  gap: 0;
+}
+.rev-hero__brand{ grid-row: 2; }
+.rev-hero__cta{ grid-row: 3; margin-top: .-15rem; } /* quase colado */
+
+/* ---- Logo ---- */
+.rev-hero__logo{
+  width: clamp(360px, 60vw, var(--hero-logo-max));
+  height:auto;
+  filter: drop-shadow(0 12px 28px rgba(0,0,0,.45));
+}
+
+/* ---- Botão ---- */
+.rev-btn{ display:inline-block; border-radius:999px; padding:.95rem 1.6rem; font-weight:500 }
+.rev-btn--outline{
+  background:transparent; color:#fff; border:1px solid rgba(255,255,255,.85);
+  text-transform:uppercase; letter-spacing:.12em;
+}
+.rev-btn--outline:hover{ border-color:#fff; box-shadow:0 0 0 2px rgba(255,255,255,.15) inset, 0 8px 24px rgba(0,0,0,.35) }
+
+/* ---- Mobile ---- */
+@media (max-width:560px){
+  .rev-hero__logo{ width: clamp(220px, 62vw, var(--hero-logo-max)); }
+}
+{% endstylesheet %}
+
+<script>
+/* Scroll muito suave para a próxima secção (só para baixo) */
+document.addEventListener('DOMContentLoaded', function(){
+  var btn = document.getElementById('rev-explore-{{ section.id }}');
+  if(!btn) return;
+
+  function smoothScrollTo(targetY, duration){
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      window.scrollTo(0, targetY); return;
+    }
+    var startY = window.pageYOffset || document.documentElement.scrollTop || 0;
+    var diff = Math.max(0, targetY - startY); if (diff < 1) return;
+    var startTime = null;
+    function easeInOutQuart(t){ return t < 0.5 ? 8*t*t*t*t : 1 - Math.pow(-2*t + 2, 4)/2; }
+    function step(ts){
+      if(!startTime) startTime = ts;
+      var t = Math.min((ts - startTime) / duration, 1);
+      var eased = easeInOutQuart(t);
+      window.scrollTo(0, startY + diff * eased);
+      if(t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  btn.addEventListener('click', function(e){
+    e.preventDefault();
+    var heroWrap = document.getElementById('shopify-section-{{ section.id }}');
+    var headerOffset = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--rev-header-h')) || 0;
+    var currentY = window.pageYOffset || document.documentElement.scrollTop || 0;
+
+    var next = heroWrap ? heroWrap.nextElementSibling : null;
+    while (next && !(next.id && next.id.indexOf('shopify-section') === 0)) {
+      next = next.nextElementSibling;
+    }
+    if(next){
+      var rect = next.getBoundingClientRect();
+      var targetY = currentY + rect.top - headerOffset;
+      targetY = Math.max(currentY + 1, targetY);      // nunca subir
+      smoothScrollTo(targetY, 2400);                   // 2.4s suave
+    }else{
+      smoothScrollTo(currentY + window.innerHeight, 2400);
+    }
+  });
+});
+</script>
